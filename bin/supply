@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+set -eo pipefail
+
+BUILD_DIR=${1}
+CACHE_DIR=${2}
+DEPS_DIR=${3}
+INDEX=${4}
+
+BUILDPACK_DIR=$(dirname $(readlink -f ${BASH_SOURCE%/*}))
+
+echo "BUILDPACK_DIR = ${BUILDPACK_DIR}"
+echo "BUILD_DIR     = ${BUILD_DIR}"
+echo "CACHE_DIR     = ${CACHE_DIR}"
+echo "DEPS_DIR      = ${DEPS_DIR}"
+echo "INDEX         = ${INDEX}"
+
+pushd "${CACHE_DIR}"
+  curl -L -O https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.10%2B9/OpenJDK11U-jdk_x64_linux_hotspot_11.0.10_9.tar.gz
+  tar xzf OpenJDK11U-jdk_x64_linux_hotspot_11.0.10_9.tar.gz
+  export PATH=$PWD/jdk-11.0.10+9/bin:$PATH
+popd
+
+pushd "${DEPS_DIR}/${INDEX}"
+  echo $VCAP_SERVICES | jq -r '.["kafka-credentials-service"][0].credentials.CERTIFICATE_KEY' > kafka.key
+  echo $VCAP_SERVICES | jq -r '.["kafka-credentials-service"][0].credentials.CERTIFICATE' > kafka.crt
+  echo $VCAP_SERVICES | jq -r '.["kafka-credentials-service"][0].credentials.CERTIFICATE_CHAIN' >> kafka_ca.crt
+
+  cp /etc/ssl/certs/ca-certificates.crt . && cat kafka_ca.crt >> ca-certificates.crt
+
+  kafka_endpoint="$(echo $VCAP_SERVICES | jq -r '.["kafka-credentials-service"][0].credentials.KAFKA_ENDPOINT')"
+  kafka_org_prefix="$(echo $VCAP_APPLICATION | jq -r '.organization_id')"
+
+  openssl pkcs12 -export -in <(cat "kafka.crt" "kafka_ca.crt") -inkey "kafka.key" -name "kafka" --password "pass:password" -out "kafka.p12"
+  keytool -importkeystore -srckeystore "kafka.p12" -srcstoretype "PKCS12" -srcstorepass "password" -deststorepass "password-to-satisfy-keystore-requirements" -destkeystore "kafka.client.keystore.jks" -deststoretype "pkcs12"
+  rm "kafka.p12"
+popd
+
+mkdir -p "${BUILD_DIR}/.profile.d"
+KAFKA_CREDENTIALS_SCRIPT_PATH="${BUILD_DIR}/.profile.d/kafka_credentials.sh"
+echo "export KAFKA_CREDENTIAL_SECURITY_PROTOCOL=SSL" > "${KAFKA_CREDENTIALS_SCRIPT_PATH}"
+echo "export KAFKA_CREDENTIAL_SSL_SECURITY_PROTOCOL=SSL" >> "${KAFKA_CREDENTIALS_SCRIPT_PATH}"
+echo "export KAFKA_CREDENTIAL_TRUSTSTORE=/home/vcap/app/.java-buildpack/open_jdk_jre/lib/security/cacerts" >> "${KAFKA_CREDENTIALS_SCRIPT_PATH}"
+echo "export KAFKA_CREDENTIAL_TRUSTSTORE_PASSWORD=changeit" >> "${KAFKA_CREDENTIALS_SCRIPT_PATH}"
+echo "export KAFKA_CREDENTIAL_KEYSTORE=/home/vcap/deps/${INDEX}/kafka.client.keystore.jks" >> "${KAFKA_CREDENTIALS_SCRIPT_PATH}"
+echo "export KAFKA_CREDENTIAL_KEYSTORE_PASSWORD=password-to-satisfy-keystore-requirements" >> "${KAFKA_CREDENTIALS_SCRIPT_PATH}"
+echo "export KAFKA_CREDENTIAL_CERTIFICATE_KEY=/home/vcap/deps/${INDEX}/kafka.key" >> "${KAFKA_CREDENTIALS_SCRIPT_PATH}"
+echo "export KAFKA_CREDENTIAL_CERTIFICATE=/home/vcap/deps/${INDEX}/kafka.crt" >> "${KAFKA_CREDENTIALS_SCRIPT_PATH}"
+echo "export KAFKA_CREDENTIAL_CERTIFICATE_CHAIN=/home/vcap/deps/${INDEX}/ca-certificates.crt" >> "${KAFKA_CREDENTIALS_SCRIPT_PATH}"
+echo "export KAFKA_ENDPOINT=${kafka_endpoint}" >> "${KAFKA_CREDENTIALS_SCRIPT_PATH}"
+echo "export KAFKA_ORG_PREFIX=org-${kafka_org_prefix}-" >> "${KAFKA_CREDENTIALS_SCRIPT_PATH}"
