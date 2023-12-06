@@ -15,9 +15,9 @@ echo "DEPS_DIR      = ${DEPS_DIR}"
 echo "INDEX         = ${INDEX}"
 
 pushd "${CACHE_DIR}"
-  curl -L -O https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.10%2B9/OpenJDK11U-jdk_x64_linux_hotspot_11.0.10_9.tar.gz
-  tar xzf OpenJDK11U-jdk_x64_linux_hotspot_11.0.10_9.tar.gz
-  export PATH=$PWD/jdk-11.0.10+9/bin:$PATH
+  curl -L -O https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.11%2B9/OpenJDK11U-jdk_x64_linux_hotspot_11.0.11_9.tar.gz
+  tar xzf OpenJDK11U-jdk_x64_linux_hotspot_11.0.11_9.tar.gz
+  export PATH=$PWD/jdk-11.0.11+9/bin:$PATH
 popd
 
 pushd "${DEPS_DIR}/${INDEX}"
@@ -31,7 +31,7 @@ pushd "${DEPS_DIR}/${INDEX}"
   kafka_org_prefix="$(echo $VCAP_APPLICATION | jq -r '.organization_id')"
 
   openssl pkcs12 -export -in <(cat "kafka.crt" "kafka_ca.crt") -inkey "kafka.key" -name "kafka" --password "pass:password" -out "kafka.p12"
-  keytool -importkeystore -srckeystore "kafka.p12" -srcstoretype "PKCS12" -srcstorepass "password" -deststorepass "password-to-satisfy-keystore-requirements" -destkeystore "kafka.client.keystore.jks" -deststoretype "pkcs12"
+  keytool -importkeystore -srckeystore "kafka.p12" -srcstoretype "PKCS12" -srcstorepass "pass:password" -deststorepass "password-to-satisfy-keystore-requirements" -destkeystore "kafka.client.keystore.jks" -deststoretype "pkcs12"
   rm "kafka.p12"
 popd
 
