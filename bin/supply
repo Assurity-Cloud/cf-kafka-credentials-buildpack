@@ -15,10 +15,11 @@ echo "DEPS_DIR      = ${DEPS_DIR}"
 echo "INDEX         = ${INDEX}"
 
 pushd "${CACHE_DIR}"
-  curl -L -O https://github.com/AdoptOpenJDK/semeru17-binaries/releases/download/jdk-17.0.8.1%2B1_openj9-0.40.0/ibm-semeru-open-jdk_x64_linux_17.0.8.1_1_openj9-0.40.0.tar.gz
-  tar xzf ibm-semeru-open-jdk_x64_linux_17.0.8.1_1_openj9-0.40.0.tar.gz
+  curl -L -O https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.12%2B7/OpenJDK17U-jre_x64_linux_hotspot_17.0.12_7.tar.gz
+  tar xzf OpenJDK17U-jre_x64_linux_hotspot_17.0.12_7.tar.gz
   ls -l
-  export PATH=$PWD/jdk-17.0.8.1+1/bin:$PATH
+  export PATH=$PWD/jdk-17.0.12+7-jre/bin:$PATH
+  rm OpenJDK17U-jre_x64_linux_hotspot_17.0.12_7.tar.gz
 popd
 
 pushd "${DEPS_DIR}/${INDEX}"
