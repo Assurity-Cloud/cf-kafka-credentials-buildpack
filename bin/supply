@@ -38,6 +38,10 @@ pushd "${DEPS_DIR}/${INDEX}"
   rm "kafka.p12"
 popd
 
+if [[ "${TARGET_KAFKA_KRAFT}" == "true" ]]; then
+  kafka_endpoint="b-2.sandpit00kraft.n5migk.c3.kafka.ap-southeast-2.amazonaws.com:9094,b-3.sandpit00kraft.n5migk.c3.kafka.ap-southeast-2.amazonaws.com:9094,b-1.sandpit00kraft.n5migk.c3.kafka.ap-southeast-2.amazonaws.com:9094"
+fi
+
 mkdir -p "${BUILD_DIR}/.profile.d"
 KAFKA_CREDENTIALS_SCRIPT_PATH="${BUILD_DIR}/.profile.d/kafka_credentials.sh"
 echo "export KAFKA_CREDENTIAL_SECURITY_PROTOCOL=SSL" > "${KAFKA_CREDENTIALS_SCRIPT_PATH}"
@@ -49,5 +53,5 @@ echo "export KAFKA_CREDENTIAL_KEYSTORE_PASSWORD=password-to-satisfy-keystore-req
 echo "export KAFKA_CREDENTIAL_CERTIFICATE_KEY=/home/vcap/deps/${INDEX}/kafka.key" >> "${KAFKA_CREDENTIALS_SCRIPT_PATH}"
 echo "export KAFKA_CREDENTIAL_CERTIFICATE=/home/vcap/deps/${INDEX}/kafka.crt" >> "${KAFKA_CREDENTIALS_SCRIPT_PATH}"
 echo "export KAFKA_CREDENTIAL_CERTIFICATE_CHAIN=/home/vcap/deps/${INDEX}/ca-certificates.crt" >> "${KAFKA_CREDENTIALS_SCRIPT_PATH}"
-echo "export KAFKA_ENDPOINT=${kafka_endpoint}" >> "${KAFKA_CREDENTIALS_SCRIPT_PATH}"
 echo "export KAFKA_ORG_PREFIX=org-${kafka_org_prefix}-" >> "${KAFKA_CREDENTIALS_SCRIPT_PATH}"
+echo "export KAFKA_ENDPOINT=${kafka_endpoint}" >> "${KAFKA_CREDENTIALS_SCRIPT_PATH}"
