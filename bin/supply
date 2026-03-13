@@ -38,8 +38,13 @@ pushd "${DEPS_DIR}/${INDEX}"
   rm "kafka.p12"
 popd
 
-if [[ "${TARGET_KAFKA_KRAFT}" == "true" ]]; then
+echo "KRAFT_TARGET_ENVIRONMENT is ${KRAFT_TARGET_ENVIRONMENT}"
+if [[ "${KRAFT_TARGET_ENVIRONMENT}" == "sandpit-00" ]]; then
   kafka_endpoint="b-2.sandpit00kraft.n5migk.c3.kafka.ap-southeast-2.amazonaws.com:9094,b-3.sandpit00kraft.n5migk.c3.kafka.ap-southeast-2.amazonaws.com:9094,b-1.sandpit00kraft.n5migk.c3.kafka.ap-southeast-2.amazonaws.com:9094"
+elif [[ "${KRAFT_TARGET_ENVIRONMENT}" == "staging-00" ]]; then
+  kafka_endpoint="b-2.staging00kraft.edjtoe.c3.kafka.ap-southeast-2.amazonaws.com:9094,b-3.staging00kraft.edjtoe.c3.kafka.ap-southeast-2.amazonaws.com:9094,b-1.staging00kraft.edjtoe.c3.kafka.ap-southeast-2.amazonaws.com:9094"
+elif [[ "${KRAFT_TARGET_ENVIRONMENT}" == "production-00" ]]; then
+  kafka_endpoint="b-1.production00kraft.pq0xwv.c4.kafka.ap-southeast-2.amazonaws.com:9094,b-3.production00kraft.pq0xwv.c4.kafka.ap-southeast-2.amazonaws.com:9094,b-2.production00kraft.pq0xwv.c4.kafka.ap-southeast-2.amazonaws.com:9094"
 fi
 
 mkdir -p "${BUILD_DIR}/.profile.d"
