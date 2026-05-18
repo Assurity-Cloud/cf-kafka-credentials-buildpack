@@ -28,7 +28,7 @@ pushd "${DEPS_DIR}/${INDEX}"
   echo $VCAP_SERVICES | jq -r '.["kafka-credentials-service"][0].credentials.CERTIFICATE_CHAIN' >> kafka_ca.crt
 
   cp /etc/ssl/certs/ca-certificates.crt . && cat kafka_ca.crt >> ca-certificates.crt
-  cp jdk-21.0.9+10-jre/lib/security/cacerts ./cacerts
+  cp ${CACHE_DIR}/jdk-21.0.9+10-jre/lib/security/cacerts ./cacerts
 
   kafka_endpoint="$(echo $VCAP_SERVICES | jq -r '.["kafka-credentials-service"][0].credentials.KAFKA_ENDPOINT')"
   kafka_org_prefix="$(echo $VCAP_APPLICATION | jq -r '.organization_id')"
