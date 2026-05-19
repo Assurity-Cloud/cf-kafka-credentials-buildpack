@@ -15,11 +15,11 @@ echo "DEPS_DIR      = ${DEPS_DIR}"
 echo "INDEX         = ${INDEX}"
 
 pushd "${CACHE_DIR}"
-  curl -L -O https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.12%2B7/OpenJDK17U-jre_x64_linux_hotspot_17.0.12_7.tar.gz
-  tar xzf OpenJDK17U-jre_x64_linux_hotspot_17.0.12_7.tar.gz
+  curl -L -O https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.9%2B10/OpenJDK21U-jre_x64_linux_hotspot_21.0.9_10.tar.gz
+  tar xzf OpenJDK21U-jre_x64_linux_hotspot_21.0.9_10.tar.gz
   ls -l
-  export PATH=$PWD/jdk-17.0.12+7-jre/bin:$PATH
-  rm OpenJDK17U-jre_x64_linux_hotspot_17.0.12_7.tar.gz
+  export PATH=$PWD/jdk-21.0.9+10-jre/bin:$PATH
+  rm OpenJDK21U-jre_x64_linux_hotspot_21.0.9_10.tar.gz
 popd
 
 pushd "${DEPS_DIR}/${INDEX}"
@@ -28,6 +28,7 @@ pushd "${DEPS_DIR}/${INDEX}"
   echo $VCAP_SERVICES | jq -r '.["kafka-credentials-service"][0].credentials.CERTIFICATE_CHAIN' >> kafka_ca.crt
 
   cp /etc/ssl/certs/ca-certificates.crt . && cat kafka_ca.crt >> ca-certificates.crt
+  cp ${CACHE_DIR}/jdk-21.0.9+10-jre/lib/security/cacerts ./cacerts
 
   kafka_endpoint="$(echo $VCAP_SERVICES | jq -r '.["kafka-credentials-service"][0].credentials.KAFKA_ENDPOINT')"
   kafka_org_prefix="$(echo $VCAP_APPLICATION | jq -r '.organization_id')"
@@ -42,7 +43,7 @@ mkdir -p "${BUILD_DIR}/.profile.d"
 KAFKA_CREDENTIALS_SCRIPT_PATH="${BUILD_DIR}/.profile.d/kafka_credentials.sh"
 echo "export KAFKA_CREDENTIAL_SECURITY_PROTOCOL=SSL" > "${KAFKA_CREDENTIALS_SCRIPT_PATH}"
 echo "export KAFKA_CREDENTIAL_SSL_SECURITY_PROTOCOL=SSL" >> "${KAFKA_CREDENTIALS_SCRIPT_PATH}"
-echo "export KAFKA_CREDENTIAL_TRUSTSTORE=/home/vcap/app/.java-buildpack/open_jdk_jre/lib/security/cacerts" >> "${KAFKA_CREDENTIALS_SCRIPT_PATH}"
+echo "export KAFKA_CREDENTIAL_TRUSTSTORE=/home/vcap/deps/${INDEX}/cacerts" >> "${KAFKA_CREDENTIALS_SCRIPT_PATH}"
 echo "export KAFKA_CREDENTIAL_TRUSTSTORE_PASSWORD=changeit" >> "${KAFKA_CREDENTIALS_SCRIPT_PATH}"
 echo "export KAFKA_CREDENTIAL_KEYSTORE=/home/vcap/deps/${INDEX}/kafka.client.keystore.jks" >> "${KAFKA_CREDENTIALS_SCRIPT_PATH}"
 echo "export KAFKA_CREDENTIAL_KEYSTORE_PASSWORD=password-to-satisfy-keystore-requirements" >> "${KAFKA_CREDENTIALS_SCRIPT_PATH}"
