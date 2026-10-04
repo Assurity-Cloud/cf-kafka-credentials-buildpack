@@ -26,7 +26,7 @@ jobs:
 
       - name: build
         run: |
-          zip -r "kafka-credentials-buildpack-cflinuxfs4-v${{ steps.tag_version_dry_run.outputs.new_version }}.zip" .
+          zip -r "kafka-credentials-buildpack-cflinuxfs5-v${{ steps.tag_version_dry_run.outputs.new_version }}.zip" .
 
       - name: Bump version and push tag
         id: tag_version
@@ -41,7 +41,7 @@ jobs:
           name: ${{ steps.tag_version.outputs.new_tag }}
           tag_name: ${{ steps.tag_version.outputs.new_tag }}
           files: |
-            kafka-credentials-buildpack-cflinuxfs4-v${{ steps.tag_version_dry_run.outputs.new_version }}.zip
+            kafka-credentials-buildpack-cflinuxfs5-v${{ steps.tag_version_dry_run.outputs.new_version }}.zip
 
       - name: delete-rc-releases
         uses: dev-drprasad/delete-older-releases@v0.2.0
